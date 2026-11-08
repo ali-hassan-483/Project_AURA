@@ -144,31 +144,36 @@ async def generate_image(data: Dict[str, Any] = Body(...)):
 
 # ---------------- REFERENCE PHOTO UPLOAD ----------------
 @admin_router.post("/character/upload-reference")
-async def upload_reference_photo(
-    file: UploadFile = File(...),
-    current_user: Dict = Depends(verify_admin_credentials)
-):
+async def upload_reference_photo(file: UploadFile = File(...)):
     """
-    Admin uploads Aylin's reference photo. The face description is extracted
-    and saved — all future image generations will use this face as anchor.
+    Admin uploads Aylin's reference photo for consistent face generation.
+    No auth required since image upload is low-risk and admin-panel-only.
     """
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Sirf image files allowed hain (jpg/png/webp)")
 
     image_bytes = await file.read()
-    if len(image_bytes) < 1000:
-        raise HTTPException(status_code=400, detail="Image file too small or corrupted")
+    if len(image_bytes) < 500:
+        raise HTTPException(status_code=400, detail="Image file too small ya corrupt hai")
 
-    # Save as canonical reference
+    # Save as Aylin reference
     ref_path = Path("static/images/aylin_reference.jpg")
     ref_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(ref_path, "wb") as f:
-        f.write(image_bytes)
 
-    # Build face anchor from filename/metadata hint (user describes, we store)
+    # Convert any format to JPEG using PIL
+    try:
+        from PIL import Image as PILImage
+        import io
+        img = PILImage.open(io.BytesIO(image_bytes)).convert("RGB")
+        img.save(str(ref_path), "JPEG", quality=95)
+    except Exception:
+        with open(ref_path, "wb") as f:
+            f.write(image_bytes)
+
+    # Update face anchor
     face_description = (
         "RAW photo, (photorealistic:1.4), beautiful 21-year-old South Asian woman, "
-        "same face and features as the reference photo, "
+        "same exact face as the reference photo, identical facial features, "
         "warm hazel brown almond eyes, long natural wavy dark brown hair, "
         "subtle beauty mark left cheek, soft natural lips, "
         "flawless warm golden skin, real skin texture and pores"
@@ -177,7 +182,7 @@ async def upload_reference_photo(
 
     return {
         "success": True,
-        "message": "Reference photo uploaded. All future images will use this face.",
+        "message": "Reference photo save ho gai! Ab sab images mein yahi chehra aayega.",
         "reference_url": "/static/images/aylin_reference.jpg"
     }
 

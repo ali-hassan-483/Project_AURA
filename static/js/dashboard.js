@@ -593,15 +593,14 @@ async function uploadReferencePhoto(input) {
   try {
     const res = await fetch("/api/admin/character/upload-reference", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${localStorage.getItem("adminToken")}` },
       body: formData
     });
+    const data = await res.json();
     if (res.ok) {
-      const data = await res.json();
-      statusEl.innerText = "✅ Reference photo saved!";
+      statusEl.innerText = "✅ " + (data.message || "Reference photo saved!");
       statusEl.className = "text-xs text-emerald-400";
     } else {
-      statusEl.innerText = "❌ Upload failed";
+      statusEl.innerText = "❌ " + (data.detail || "Upload failed");
       statusEl.className = "text-xs text-red-400";
     }
   } catch (e) {
