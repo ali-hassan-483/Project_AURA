@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     
     # Provider Keys (Free Tiers Supported)
     GROQ_API_KEY: Optional[str] = None
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"  # Free & powerful on Groq
+    GROQ_MODEL: str = "qwen/qwen3.8-27b"  # High speed & multilingual Roman Urdu
     
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-2.0-flash"      # Free tier on Google AI Studio

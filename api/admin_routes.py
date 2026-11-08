@@ -107,11 +107,11 @@ async def set_primary_provider(data: Dict[str, str] = Body(...), current_user: D
 
 # ---------------- VOICE STUDIO ----------------
 @admin_router.get("/voice/list")
-async def list_voices(current_user: Dict = Depends(verify_admin_credentials)):
+async def list_voices():
     return await tts_service.get_available_voices()
 
 @admin_router.post("/voice/preview")
-async def preview_voice(data: Dict[str, str] = Body(...), current_user: Dict = Depends(verify_admin_credentials)):
+async def preview_voice(data: Dict[str, str] = Body(...)):
     text = data.get("text", "Hello jaan, main Aura hoon! Kaisi ho?")
     voice = data.get("voice", settings.TTS_DEFAULT_VOICE_URDU)
     rate = data.get("rate", "+0%")
@@ -126,7 +126,7 @@ async def preview_voice(data: Dict[str, str] = Body(...), current_user: Dict = D
 
 # ---------------- IMAGE GENERATOR STUDIO ----------------
 @admin_router.post("/image/generate")
-async def generate_image(data: Dict[str, Any] = Body(...), current_user: Dict = Depends(verify_admin_credentials)):
+async def generate_image(data: Dict[str, Any] = Body(...)):
     prompt = data.get("prompt", "taking a sweet selfie smiling")
     seed_offset = int(data.get("seed_offset", 0))
 
@@ -142,10 +142,10 @@ async def generate_image(data: Dict[str, Any] = Body(...), current_user: Dict = 
 
 # ---------------- LIVE SIMULATOR / WEB CHAT ----------------
 @admin_router.post("/simulator/chat")
-async def simulate_chat(data: Dict[str, Any] = Body(...), current_user: Dict = Depends(verify_admin_credentials)):
+async def simulate_chat(data: Dict[str, Any] = Body(...)):
     """
-    Allows developers and users to test Aura directly in the dashboard UI
-    without needing a connected WhatsApp device or phone number.
+    Allows developers, users, and mobile apps to chat with Aura directly
+    without requiring prior admin login.
     """
     user_message = data.get("message", "").strip()
     user_phone = data.get("phone", "+923001234567")
