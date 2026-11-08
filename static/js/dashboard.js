@@ -3,13 +3,12 @@ let activeTab = "simulator";
 let currentMemories = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadChatHistory();
   checkAuth();
 
   // Register PWA Service Worker for Mobile installation
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/sw.js')
-      .then(() => console.log("Aura PWA Service Worker Registered"))
+      .then(() => console.log("Aylin PWA Service Worker Registered"))
       .catch((err) => console.log("SW registration error:", err));
   }
 });
@@ -68,12 +67,17 @@ async function checkAuth() {
   const statusText = document.getElementById("authStatusText");
   const adminNav = document.getElementById("adminNavGroup");
   const mobileAdminNav = document.getElementById("mobileAdminNavGroup");
+  const chatSection = document.getElementById("tab-simulator");
+  const loginWall = document.getElementById("chatLoginWall");
 
   if (!authToken) {
     statusText.innerText = "Admin Login";
     statusText.className = "text-slate-300";
     if (adminNav) adminNav.classList.add("hidden");
     if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
+    // Show login wall, hide chat
+    if (chatSection) chatSection.classList.add("hidden");
+    if (loginWall) loginWall.classList.remove("hidden");
     return;
   }
 
@@ -85,10 +89,14 @@ async function checkAuth() {
       statusText.className = "text-emerald-400 font-semibold";
       if (adminNav) adminNav.classList.remove("hidden");
       if (mobileAdminNav) mobileAdminNav.classList.remove("hidden");
+      // Show chat, hide login wall
+      if (loginWall) loginWall.classList.add("hidden");
+      if (chatSection) chatSection.classList.remove("hidden");
       refreshMetrics();
       loadCharacterSettings();
       loadProviders();
       loadUserDropdown();
+      loadChatHistory();
     } else {
       localStorage.removeItem("aura_admin_token");
       authToken = "";
@@ -96,10 +104,14 @@ async function checkAuth() {
       statusText.className = "text-slate-300";
       if (adminNav) adminNav.classList.add("hidden");
       if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
+      if (chatSection) chatSection.classList.add("hidden");
+      if (loginWall) loginWall.classList.remove("hidden");
     }
   } catch (e) {
     if (adminNav) adminNav.classList.add("hidden");
     if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
+    if (chatSection) chatSection.classList.add("hidden");
+    if (loginWall) loginWall.classList.remove("hidden");
   }
 
   if (window.lucide) lucide.createIcons();
@@ -111,7 +123,6 @@ function handleAuthAction() {
       localStorage.removeItem("aura_admin_token");
       authToken = "";
       checkAuth();
-      switchTab("simulator");
     }
   } else {
     toggleAuthModal();
@@ -144,8 +155,7 @@ async function performLogin() {
       localStorage.setItem("aura_admin_token", authToken);
       toggleAuthModal();
       await checkAuth();
-      switchTab("overview");
-      alert("Admin authenticated successfully!");
+      switchTab("simulator");
     } else {
       alert("Invalid username or password.");
     }
