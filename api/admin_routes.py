@@ -114,7 +114,7 @@ async def list_voices():
 
 @admin_router.post("/voice/preview")
 async def preview_voice(data: Dict[str, str] = Body(...)):
-    text = data.get("text", "Hello jaan, main Aura hoon! Kaisi ho?")
+    text = data.get("text", "Hello jaan, I'm Aylin! How are you?")
     voice = data.get("voice", settings.TTS_DEFAULT_VOICE_URDU)
     rate = data.get("rate", "+0%")
     pitch = data.get("pitch", "+0Hz")
@@ -150,11 +150,11 @@ async def upload_reference_photo(file: UploadFile = File(...)):
     No auth required since image upload is low-risk and admin-panel-only.
     """
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Sirf image files allowed hain (jpg/png/webp)")
+        raise HTTPException(status_code=400, detail="Only image files are allowed (jpg/png/webp)")
 
     image_bytes = await file.read()
     if len(image_bytes) < 500:
-        raise HTTPException(status_code=400, detail="Image file too small ya corrupt hai")
+        raise HTTPException(status_code=400, detail="Image file is too small or corrupted")
 
     # Save as Aylin reference
     ref_path = Path("static/images/aylin_reference.jpg")
@@ -182,7 +182,7 @@ async def upload_reference_photo(file: UploadFile = File(...)):
 
     return {
         "success": True,
-        "message": "Reference photo save ho gai! Ab sab images mein yahi chehra aayega.",
+        "message": "Reference photo saved! All future images will use this face.",
         "reference_url": "/static/images/aylin_reference.jpg"
     }
 

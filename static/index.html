@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -311,7 +311,7 @@
             <button onclick="sendQuickPrompt('Show me your full outfit')" class="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700/80 shrink-0">👗 Outfit</button>
             <button onclick="sendQuickPrompt('Send me a voice note')" class="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700/80 shrink-0">🎙️ Voice Note</button>
             <button onclick="sendQuickPrompt('Take a mirror selfie')" class="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700/80 shrink-0">🪞 Mirror Selfie</button>
-            <button onclick="sendQuickPrompt('Kaisi ho meri jaan?')" class="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700/80 shrink-0">❤️ Kaisi ho jaan?</button>
+            <button onclick="sendQuickPrompt('Hey Aylin!')" class="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700/80 shrink-0">❤️ Kaisi ho jaan?</button>
           </div>
 
           <!-- Chat Input -->
@@ -472,14 +472,14 @@
             <i data-lucide="user-check" class="w-4 h-4"></i>
             <span>Aylin's Reference Face Photo</span>
           </h3>
-          <p class="text-xs text-slate-400 mb-3">Upload karo Aylin ki reference photo � sab future images mein yahi chehra aayega, sirf clothes aur background change honge.</p>
+          <p class="text-xs text-slate-400 mb-3">Upload Aylin's reference photo — all future images will use the same face with different clothes and backgrounds.</p>
           <div class="flex items-center space-x-3">
             <input type="file" id="referencePhotoInput" accept="image/*" class="hidden" onchange="uploadReferencePhoto(this)">
             <button onclick="document.getElementById('referencePhotoInput').click()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center space-x-2">
               <i data-lucide="upload" class="w-3.5 h-3.5"></i>
               <span>Reference Photo Upload</span>
             </button>
-            <span id="refUploadStatus" class="text-xs text-slate-400">Koi photo upload nahi</span>
+            <span id="refUploadStatus" class="text-xs text-slate-400">No photo uploaded yet</span>
           </div>
           <div id="refPhotoPreview" class="hidden mt-3">
             <img id="refPhotoImg" src="" alt="Reference" class="w-24 h-24 rounded-lg object-cover border border-rose-500/40">
@@ -701,4 +701,7 @@
   </script>
 </body>
 </html>
+
+
+
 
