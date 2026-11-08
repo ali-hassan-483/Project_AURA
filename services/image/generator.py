@@ -161,13 +161,26 @@ class ImageGenerationService:
                 with open(canonical_path, "wb") as f:
                     f.write(image_bytes)
         else:
-            # Fallback realistic placeholder if completely offline/blocked
-            from PIL import Image as PILImage, ImageDraw
-            img = PILImage.new("RGB", (width, height), color=(30, 24, 38))
-            draw = ImageDraw.Draw(img)
-            draw.text((width // 4, height // 2), f"Aylin: {scene_key.title()}", fill=(245, 215, 225))
-            img.save(str(save_path), "JPEG")
-            logger.warning("Placeholder image generated for %s (upstream APIs busy)", file_id)
+            # Fallback: if upstream generation timed out, use Aylin's reference photo so user never gets an empty black box
+            ref_path = Path(__file__).resolve().parent.parent.parent / "static" / "images" / "aylin_reference.jpg"
+            if not ref_path.exists():
+                ref_path = Path(__file__).resolve().parent.parent.parent / "static" / "images" / "aura_canonical_reference.jpg"
+
+            if ref_path.exists():
+                try:
+                    with open(ref_path, "rb") as rf:
+                        with open(save_path, "wb") as sf:
+                            sf.write(rf.read())
+                    logger.info("Delivered reference photo fallback for %s", file_id)
+                except Exception as e:
+                    logger.warning("Could not copy reference fallback: %s", e)
+            else:
+                from PIL import Image as PILImage, ImageDraw
+                img = PILImage.new("RGB", (width, height), color=(30, 24, 38))
+                draw = ImageDraw.Draw(img)
+                draw.text((width // 4, height // 2), f"Aylin: {scene_key.title()}", fill=(245, 215, 225))
+                img.save(str(save_path), "JPEG")
+                logger.warning("Placeholder image generated for %s (upstream APIs busy)", file_id)
 
         return str(save_path), file_id, composed_prompt
 
