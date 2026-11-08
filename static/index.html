@@ -46,8 +46,8 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <button id="authBtn" onclick="toggleAuthModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-          <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+        <button id="authBtn" onclick="handleAuthAction()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
+          <i id="authIcon" data-lucide="lock" class="w-3.5 h-3.5"></i>
           <span id="authStatusText">Admin Login</span>
         </button>
       </div>
@@ -60,45 +60,51 @@
     <!-- Sidebar -->
     <aside class="w-64 border-r border-slate-800/80 bg-[#0e111a]/70 flex flex-col justify-between p-4 hidden md:flex">
       <nav class="space-y-1.5" id="navTabs">
-        <button onclick="switchTab('overview')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-rose-400 bg-rose-500/10 border border-rose-500/20">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-          <span>Overview</span>
-        </button>
-
-        <button onclick="switchTab('simulator')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+        <!-- Public Chat Tab (Default) -->
+        <button id="navBtnSimulator" onclick="switchTab('simulator')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-rose-400 bg-rose-500/10 border border-rose-500/20">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
-          <span>Live Chat Simulator</span>
+          <span>Chat with Aura</span>
         </button>
 
-        <button onclick="switchTab('persona')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="heart" class="w-4 h-4"></i>
-          <span>Persona & Identity</span>
-        </button>
+        <!-- Admin Only Group (Locked until Login) -->
+        <div id="adminNavGroup" class="hidden space-y-1.5 pt-3 mt-2 border-t border-slate-800">
+          <div class="px-3 pb-1 text-[11px] font-semibold text-slate-500 tracking-wider uppercase">Admin Control</div>
 
-        <button onclick="switchTab('memory')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="brain" class="w-4 h-4"></i>
-          <span>Memory Ledger</span>
-        </button>
+          <button id="navBtnOverview" onclick="switchTab('overview')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Overview & Stats</span>
+          </button>
 
-        <button onclick="switchTab('voice')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="mic" class="w-4 h-4"></i>
-          <span>Voice Studio</span>
-        </button>
+          <button onclick="switchTab('persona')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="heart" class="w-4 h-4"></i>
+            <span>Persona & Identity</span>
+          </button>
 
-        <button onclick="switchTab('image')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="image" class="w-4 h-4"></i>
-          <span>Image Lab</span>
-        </button>
+          <button onclick="switchTab('memory')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="brain" class="w-4 h-4"></i>
+            <span>Memory Ledger</span>
+          </button>
 
-        <button onclick="switchTab('providers')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="cpu" class="w-4 h-4"></i>
-          <span>AI Providers</span>
-        </button>
+          <button onclick="switchTab('voice')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="mic" class="w-4 h-4"></i>
+            <span>Voice Studio</span>
+          </button>
 
-        <button onclick="switchTab('privacy')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-          <span>Privacy & Security</span>
-        </button>
+          <button onclick="switchTab('image')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="image" class="w-4 h-4"></i>
+            <span>Image Lab</span>
+          </button>
+
+          <button onclick="switchTab('providers')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span>AI Providers</span>
+          </button>
+
+          <button onclick="switchTab('privacy')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Privacy & Security</span>
+          </button>
+        </div>
       </nav>
 
       <!-- Bottom Status Pill -->
@@ -118,7 +124,7 @@
     <main class="flex-1 overflow-y-auto p-6 bg-[#0a0b10]">
 
       <!-- TAB 1: OVERVIEW -->
-      <section id="tab-overview" class="space-y-6">
+      <section id="tab-overview" class="hidden space-y-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold tracking-tight text-white">System Overview</h2>
@@ -194,7 +200,7 @@
       </section>
 
       <!-- TAB 2: LIVE SIMULATOR -->
-      <section id="tab-simulator" class="hidden space-y-4 max-w-4xl mx-auto">
+      <section id="tab-simulator" class="space-y-4 max-w-4xl mx-auto">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-2xl font-bold tracking-tight text-white">Live WhatsApp Simulator</h2>
@@ -550,11 +556,11 @@
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
-          <input id="modalUsername" type="text" value="admin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+          <input id="modalUsername" type="text" placeholder="admin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-          <input id="modalPassword" type="password" value="aura2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+          <input id="modalPassword" type="password" placeholder="Enter admin password" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
         </div>
       </div>
       <button onclick="performLogin()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg">Sign In</button>

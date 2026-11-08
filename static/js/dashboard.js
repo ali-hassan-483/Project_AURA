@@ -1,14 +1,10 @@
 let authToken = localStorage.getItem("aura_admin_token") || "";
-let activeTab = "overview";
+let activeTab = "simulator";
 let currentMemories = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-  checkAuth();
-  refreshMetrics();
-  loadCharacterSettings();
-  loadProviders();
-  loadUserDropdown();
   loadChatHistory();
+  checkAuth();
 
   // Register PWA Service Worker for Mobile installation
   if ('serviceWorker' in navigator) {
@@ -33,51 +29,67 @@ function switchTab(tabId) {
   // Update nav button styling
   const buttons = document.querySelectorAll(".nav-btn");
   buttons.forEach(btn => {
-    btn.className = "nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50";
+    btn.className = "nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50";
   });
 
   event?.currentTarget?.classList?.remove("text-slate-400", "hover:text-slate-200", "hover:bg-slate-800/50");
   event?.currentTarget?.classList?.add("text-rose-400", "bg-rose-500/10", "border", "border-rose-500/20");
 
-  if (tabId === "memory") loadUserDropdown();
-  if (tabId === "overview") refreshMetrics();
-  if (tabId === "providers") loadProviders();
+  if (tabId === "memory" && authToken) loadUserDropdown();
+  if (tabId === "overview" && authToken) refreshMetrics();
+  if (tabId === "providers" && authToken) loadProviders();
   if (tabId === "simulator") loadChatHistory();
 
   lucide.createIcons();
 }
 
 // ---------------- AUTHENTICATION ----------------
-function checkAuth() {
+async function checkAuth() {
   const statusText = document.getElementById("authStatusText");
-  if (authToken) {
-    statusText.innerText = "Admin (Active)";
-    statusText.className = "text-emerald-400 font-semibold";
-  } else {
+  const adminNav = document.getElementById("adminNavGroup");
+
+  if (!authToken) {
     statusText.innerText = "Admin Login";
     statusText.className = "text-slate-300";
-    // Attempt auto login with default credentials if in dev
-    autoLoginDev();
+    if (adminNav) adminNav.classList.add("hidden");
+    return;
   }
-}
 
-async function autoLoginDev() {
+  // Validate token against backend
   try {
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "aura2026" })
-    });
+    const res = await fetch("/api/admin/metrics", { headers: getAuthHeaders() });
     if (res.ok) {
-      const data = await res.json();
-      authToken = data.access_token;
-      localStorage.setItem("aura_admin_token", authToken);
-      checkAuth();
+      statusText.innerText = "Admin (Logout)";
+      statusText.className = "text-emerald-400 font-semibold";
+      if (adminNav) adminNav.classList.remove("hidden");
       refreshMetrics();
       loadCharacterSettings();
+      loadProviders();
+      loadUserDropdown();
+    } else {
+      localStorage.removeItem("aura_admin_token");
+      authToken = "";
+      statusText.innerText = "Admin Login";
+      statusText.className = "text-slate-300";
+      if (adminNav) adminNav.classList.add("hidden");
     }
   } catch (e) {
-    console.error("Auto login error:", e);
+    if (adminNav) adminNav.classList.add("hidden");
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function handleAuthAction() {
+  if (authToken) {
+    if (confirm("Are you sure you want to log out of Admin Dashboard?")) {
+      localStorage.removeItem("aura_admin_token");
+      authToken = "";
+      checkAuth();
+      switchTab("simulator");
+    }
+  } else {
+    toggleAuthModal();
   }
 }
 
@@ -87,8 +99,13 @@ function toggleAuthModal() {
 }
 
 async function performLogin() {
-  const username = document.getElementById("modalUsername").value;
-  const password = document.getElementById("modalPassword").value;
+  const username = document.getElementById("modalUsername").value.trim();
+  const password = document.getElementById("modalPassword").value.trim();
+
+  if (!username || !password) {
+    alert("Please enter both username and password.");
+    return;
+  }
 
   try {
     const res = await fetch("/api/admin/login", {
@@ -101,11 +118,11 @@ async function performLogin() {
       authToken = data.access_token;
       localStorage.setItem("aura_admin_token", authToken);
       toggleAuthModal();
-      checkAuth();
-      alert("Authenticated successfully!");
-      refreshMetrics();
+      await checkAuth();
+      switchTab("overview");
+      alert("Admin authenticated successfully!");
     } else {
-      alert("Invalid credentials.");
+      alert("Invalid username or password.");
     }
   } catch (err) {
     alert("Login failed: " + err.message);
