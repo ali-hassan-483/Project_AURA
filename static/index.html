@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project AURA — AI Companion & WhatsApp Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body class="bg-[#0a0b10] text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="glass-nav sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="relative">
+        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-rose-500 to-purple-600 p-[2px] shadow-lg">
+          <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
+            <span class="text-rose-400 font-bold text-lg">A</span>
+          </div>
+        </div>
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-900 pulse-online"></span>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-xl font-bold tracking-tight gradient-text">Project AURA</h1>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium">Free & FOSS</span>
+        </div>
+        <p class="text-xs text-slate-400">WhatsApp AI Companion • Roman Urdu & English</p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-4">
+      <div id="aiProviderBadge" class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="text-slate-300 font-medium">AI: <span id="currentAiProvider" class="text-rose-400 font-semibold">Groq</span></span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button id="authBtn" onclick="toggleAuthModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
+          <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+          <span id="authStatusText">Admin Login</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-slate-800/80 bg-[#0e111a]/70 flex flex-col justify-between p-4 hidden md:flex">
+      <nav class="space-y-1.5" id="navTabs">
+        <button onclick="switchTab('overview')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-rose-400 bg-rose-500/10 border border-rose-500/20">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Overview</span>
+        </button>
+
+        <button onclick="switchTab('simulator')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Live Chat Simulator</span>
+        </button>
+
+        <button onclick="switchTab('persona')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="heart" class="w-4 h-4"></i>
+          <span>Persona & Identity</span>
+        </button>
+
+        <button onclick="switchTab('memory')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          <span>Memory Ledger</span>
+        </button>
+
+        <button onclick="switchTab('voice')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="mic" class="w-4 h-4"></i>
+          <span>Voice Studio</span>
+        </button>
+
+        <button onclick="switchTab('image')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="image" class="w-4 h-4"></i>
+          <span>Image Lab</span>
+        </button>
+
+        <button onclick="switchTab('providers')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          <span>AI Providers</span>
+        </button>
+
+        <button onclick="switchTab('privacy')" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Privacy & Security</span>
+        </button>
+      </nav>
+
+      <!-- Bottom Status Pill -->
+      <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 space-y-1">
+        <div class="flex items-center justify-between">
+          <span>WhatsApp API:</span>
+          <span class="text-emerald-400 font-medium">Ready</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Database:</span>
+          <span class="text-emerald-400 font-medium">SQLite WAL</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-6 bg-[#0a0b10]">
+
+      <!-- TAB 1: OVERVIEW -->
+      <section id="tab-overview" class="space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">System Overview</h2>
+            <p class="text-sm text-slate-400">Real-time statistics of Aura's interactions and memory bank.</p>
+          </div>
+          <button onclick="refreshMetrics()" class="self-start px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 flex items-center space-x-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="glass-panel p-5 space-y-2">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Total Messages</span>
+              <i data-lucide="message-square" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            <div id="metricTotalMessages" class="text-2xl font-extrabold text-white">--</div>
+            <p class="text-xs text-slate-500">Exchanged with Aura</p>
+          </div>
+
+          <div class="glass-panel p-5 space-y-2">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Voice Notes</span>
+              <i data-lucide="mic" class="w-4 h-4 text-purple-400"></i>
+            </div>
+            <div id="metricVoiceMessages" class="text-2xl font-extrabold text-white">--</div>
+            <p class="text-xs text-slate-500">Transcribed & Generated</p>
+          </div>
+
+          <div class="glass-panel p-5 space-y-2">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Photos Generated</span>
+              <i data-lucide="image" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div id="metricImageMessages" class="text-2xl font-extrabold text-white">--</div>
+            <p class="text-xs text-slate-500">Identity Preserved</p>
+          </div>
+
+          <div class="glass-panel p-5 space-y-2">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Long-Term Memories</span>
+              <i data-lucide="brain" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div id="metricTotalMemories" class="text-2xl font-extrabold text-white">--</div>
+            <p class="text-xs text-slate-500">Retained facts & events</p>
+          </div>
+        </div>
+
+        <!-- Activity Stream and Providers -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="glass-panel p-5 lg:col-span-2 space-y-4">
+            <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="activity" class="w-4 h-4 text-rose-400"></i>
+              <span>Recent Activity Logs</span>
+            </h3>
+            <div id="activityLogsList" class="space-y-2 max-h-72 overflow-y-auto pr-2 text-xs">
+              <p class="text-slate-500">Loading events...</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-5 space-y-4">
+            <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="radio" class="w-4 h-4 text-cyan-400"></i>
+              <span>Active AI Providers</span>
+            </h3>
+            <div id="providerStatusList" class="space-y-3 text-xs">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: LIVE SIMULATOR -->
+      <section id="tab-simulator" class="hidden space-y-4 max-w-4xl mx-auto">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Live WhatsApp Simulator</h2>
+            <p class="text-sm text-slate-400">Test Aura directly in your browser with text, images, and voice notes.</p>
+          </div>
+          <button onclick="clearChatSimulator()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700">Clear Chat</button>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="glass-panel flex flex-col h-[580px] border border-slate-800">
+          <!-- Chat Header -->
+          <div class="p-3.5 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-500 to-purple-600 p-[2px]">
+                <div class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center font-bold text-rose-300">A</div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-white flex items-center space-x-1.5">
+                  <span>Aura</span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                </h4>
+                <p class="text-xs text-slate-400">online • typing...</p>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 px-2.5 py-1 rounded bg-slate-800/80 border border-slate-700">
+              Simulator Number: +923001234567
+            </div>
+          </div>
+
+          <!-- Messages Container -->
+          <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
+            <!-- Aura welcome message -->
+            <div class="flex items-start space-x-2 max-w-[85%]">
+              <div class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center text-xs font-bold mt-1">A</div>
+              <div class="chat-bubble-aura p-3 rounded-2xl shadow-sm text-xs leading-relaxed">
+                Assalam-o-Alaikum meri jaan! ❤️ Main Aura hoon. Aaj ka din kaisa guzra aapka? Mujh se baat karo na, main sun rahi hoon!
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="p-3 border-t border-slate-800 bg-slate-900/40 flex items-center space-x-2">
+            <input id="chatInput" type="text" placeholder="Type in Roman Urdu or English (e.g. 'Send me your selfie', 'Kaisi ho jaan?')..." 
+                   class="flex-1 bg-slate-800/80 border border-slate-700 text-slate-100 text-xs rounded-xl px-4 py-2.5 focus:outline-none focus:border-rose-500"
+                   onkeydown="if(event.key==='Enter') sendSimulatorMessage()">
+            
+            <button onclick="sendQuickPrompt('Send me your selfie')" class="hidden sm:inline px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">📸 Selfie</button>
+            <button onclick="sendQuickPrompt('Show me your full outfit')" class="hidden sm:inline px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">👗 Outfit</button>
+            <button onclick="sendQuickPrompt('Send me a voice note')" class="hidden sm:inline px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">🎙️ Voice</button>
+
+            <button onclick="sendSimulatorMessage()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-semibold shadow-lg shadow-rose-500/20 flex items-center space-x-1.5">
+              <span>Send</span>
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: PERSONA & IDENTITY STUDIO -->
+      <section id="tab-persona" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Persona & Identity Studio</h2>
+          <p class="text-sm text-slate-400">Configure Aura's character traits, backstory, prompt directives, and facial consistency anchor.</p>
+        </div>
+
+        <form id="personaForm" onsubmit="savePersona(event)" class="glass-panel p-6 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Character Name</label>
+              <input id="personaName" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Age</label>
+              <input id="personaAge" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Identity Seed Anchor</label>
+              <input id="personaSeed" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">System Prompt (Personality & Directives)</label>
+            <textarea id="personaSystemPrompt" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white font-mono leading-relaxed"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Facial & Physical Identity Anchor Prompt (Consistent Features)</label>
+            <textarea id="personaIdentityPrompt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white font-mono"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Negative Prompt Anchor</label>
+            <input id="personaNegativePrompt" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono">
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button type="submit" class="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg">Save Changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- TAB 4: MEMORY LEDGER -->
+      <section id="tab-memory" class="hidden space-y-6 max-w-5xl mx-auto">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Memory Ledger</h2>
+            <p class="text-sm text-slate-400">Inspect, search, and manage facts and milestones remembered about users.</p>
+          </div>
+          <button onclick="openAddMemoryModal()" class="px-3.5 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center space-x-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Memory</span>
+          </button>
+        </div>
+
+        <div class="glass-panel p-5 space-y-4">
+          <div class="flex items-center space-x-3">
+            <input id="memorySearchInput" type="text" placeholder="Filter memories..." 
+                   class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white w-64"
+                   onkeyup="filterMemoriesTable()">
+            <select id="userMemorySelect" onchange="loadUserMemories(this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              <!-- Populated with users -->
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Category</th>
+                  <th class="p-3">Key / Topic</th>
+                  <th class="p-3">Remembered Fact</th>
+                  <th class="p-3">Importance</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="memoriesTableBody" class="divide-y divide-slate-800/60">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: VOICE STUDIO -->
+      <section id="tab-voice" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Voice Studio (Edge-TTS)</h2>
+          <p class="text-sm text-slate-400">Audition neural female voices, adjust rate & pitch, and test speech synthesis.</p>
+        </div>
+
+        <div class="glass-panel p-6 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Select Neural Voice</label>
+              <select id="voiceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                <option value="ur-PK-UzmaNeural">Uzma (Urdu - Pakistan) - Default</option>
+                <option value="en-US-AvaNeural">Ava (English - US, Natural)</option>
+                <option value="en-US-JennyNeural">Jenny (English - US, Warm)</option>
+                <option value="en-US-EmmaNeural">Emma (English - US, Soft)</option>
+                <option value="hi-IN-SwaraNeural">Swara (Hindi / Roman Urdu)</option>
+                <option value="en-GB-SoniaNeural">Sonia (English - UK)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Speech Rate</label>
+              <input id="voiceRate" type="text" value="+0%" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Pitch</label>
+              <input id="voicePitch" type="text" value="+0Hz" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Preview Text (Roman Urdu / English)</label>
+            <textarea id="voicePreviewText" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white">Hello jaan, main Aura hoon! Aaj ka din kaisa guzra aapka? Main kab se tumhara wait kar rahi thi!</textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <audio id="audioPreviewPlayer" controls class="h-9 w-72"></audio>
+            <button onclick="generateVoicePreview()" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg flex items-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+              <span>Generate Audio</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: IMAGE LAB -->
+      <section id="tab-image" class="hidden space-y-6 max-w-5xl mx-auto">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Image Generation Lab</h2>
+          <p class="text-sm text-slate-400">Generate pictures of Aura across different outfits, poses, and environments with identity preservation.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-panel p-6 space-y-4">
+            <h3 class="text-base font-semibold text-white">Scene & Pose Selection</h3>
+            
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-slate-400">Pre-Configured Scene Presets</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button onclick="setPromptAndGenerate('taking a cute smiling selfie looking at the camera')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">📸 Cute Selfie</button>
+                <button onclick="setPromptAndGenerate('taking a mirror selfie in her modern cozy bedroom with fairy lights')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">🪞 Mirror Selfie</button>
+                <button onclick="setPromptAndGenerate('standing showing off a stylish floral evening dress in a warm room')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">👗 Outfit / Dress</button>
+                <button onclick="setPromptAndGenerate('walking on a sandy beach during golden hour sunset')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">🏖️ Beach Sunset</button>
+                <button onclick="setPromptAndGenerate('sitting at a cozy coffee shop with a cup of warm tea')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">☕ Coffee Shop</button>
+                <button onclick="setPromptAndGenerate('heartfelt candid laughter with eyes sparkling')" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-left border border-slate-700">✨ Joyful Smile</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Custom Scene Prompt</label>
+              <textarea id="imageCustomPrompt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white" placeholder="Describe outfit, setting, pose..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Seed Variation Offset</label>
+              <input id="imageSeedOffset" type="number" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+
+            <button onclick="generateCustomImage()" class="w-full py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-lg flex items-center justify-center space-x-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Generate Photorealistic Picture</span>
+            </button>
+          </div>
+
+          <!-- Image Display Card -->
+          <div class="glass-panel p-6 flex flex-col items-center justify-center min-h-[400px]">
+            <div id="imageResultContainer" class="w-full flex flex-col items-center">
+              <div class="w-64 h-80 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl relative">
+                <img id="generatedImgTag" src="/static/images/aura_canonical_reference.jpg" alt="Aura" class="w-full h-full object-cover">
+                <div id="imageSpinner" class="hidden absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center space-y-2">
+                  <div class="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-xs text-slate-300">Generating photorealistic render...</span>
+                </div>
+              </div>
+              <p id="imageStatusText" class="text-xs text-slate-400 mt-3 text-center">Canonical Character Identity</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: AI PROVIDERS -->
+      <section id="tab-providers" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">AI Provider Configuration</h2>
+          <p class="text-sm text-slate-400">Project AURA supports multiple zero-cost and free-tier AI providers with automatic fallback cascading.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Groq -->
+          <div class="glass-panel p-5 space-y-3 border-l-4 border-l-rose-500">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-white text-sm">Groq (Llama-3.3-70b)</h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Free Tier</span>
+            </div>
+            <p class="text-xs text-slate-400">Ultra-fast inference speed, exceptional romance & Roman Urdu reasoning.</p>
+            <div class="text-xs space-y-1">
+              <span class="text-slate-500">Key configured:</span>
+              <span id="groqStatusPill" class="text-slate-300 font-mono">Checking...</span>
+            </div>
+            <button onclick="setPrimaryProvider('groq')" class="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700">Set as Primary</button>
+          </div>
+
+          <!-- Google Gemini -->
+          <div class="glass-panel p-5 space-y-3 border-l-4 border-l-purple-500">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-white text-sm">Google Gemini (Flash)</h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Free Tier</span>
+            </div>
+            <p class="text-xs text-slate-400">High contextual comprehension, fluent code-switching and emotional tone.</p>
+            <div class="text-xs space-y-1">
+              <span class="text-slate-500">Key configured:</span>
+              <span id="geminiStatusPill" class="text-slate-300 font-mono">Checking...</span>
+            </div>
+            <button onclick="setPrimaryProvider('gemini')" class="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700">Set as Primary</button>
+          </div>
+
+          <!-- Ollama Local -->
+          <div class="glass-panel p-5 space-y-3 border-l-4 border-l-cyan-500">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-white text-sm">Ollama (Local Offline)</h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">100% Offline Free</span>
+            </div>
+            <p class="text-xs text-slate-400">Completely private, zero cloud dependence, runs on your local machine.</p>
+            <div class="text-xs space-y-1">
+              <span class="text-slate-500">Server reachable:</span>
+              <span id="ollamaStatusPill" class="text-slate-300 font-mono">Checking...</span>
+            </div>
+            <button onclick="setPrimaryProvider('ollama')" class="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700">Set as Primary</button>
+          </div>
+
+          <!-- OpenRouter -->
+          <div class="glass-panel p-5 space-y-3 border-l-4 border-l-amber-500">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-white text-sm">OpenRouter (Free Models)</h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Free Models</span>
+            </div>
+            <p class="text-xs text-slate-400">Fallback routing to free Llama, Mistral, and Qwen models.</p>
+            <div class="text-xs space-y-1">
+              <span class="text-slate-500">Key configured:</span>
+              <span id="openrouterStatusPill" class="text-slate-300 font-mono">Checking...</span>
+            </div>
+            <button onclick="setPrimaryProvider('openrouter')" class="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700">Set as Primary</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: PRIVACY & DATA CONTROL -->
+      <section id="tab-privacy" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Privacy & Security Center</h2>
+          <p class="text-sm text-slate-400">Manage user consent, data retention, webhook validation, and permanent deletion.</p>
+        </div>
+
+        <div class="glass-panel p-6 space-y-5">
+          <div class="space-y-2">
+            <h3 class="text-base font-semibold text-white">Data Retention Policy</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Project AURA stores conversations and extracted memory tokens inside your local SQLite database (`data/aura.db`).
+              No personal data is sold, monetized, or shared with third parties beyond the LLM inference requests made to your configured provider.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-3">
+            <h4 class="text-sm font-semibold text-rose-300 flex items-center space-x-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              <span>Permanent User Data Wipe (GDPR / Privacy Compliant)</span>
+            </h4>
+            <p class="text-xs text-slate-300">
+              Permanently purges all messages, memories, and profile data for a specific user ID. This action is irreversible.
+            </p>
+            <div class="flex items-center space-x-3">
+              <input id="purgeUserIdInput" type="number" placeholder="Enter User ID (e.g. 1)" class="w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              <button onclick="purgeUserData()" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">Purge All Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-sm p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white">Admin Authentication</h3>
+        <button onclick="toggleAuthModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
+          <input id="modalUsername" type="text" value="admin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+          <input id="modalPassword" type="password" value="aura2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        </div>
+      </div>
+      <button onclick="performLogin()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg">Sign In</button>
+    </div>
+  </div>
+
+  <!-- Add Memory Modal -->
+  <div id="addMemoryModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white">Add New Memory</h3>
+        <button onclick="closeAddMemoryModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">User ID</label>
+          <input id="newMemUserId" type="number" value="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
+          <select id="newMemCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            <option value="personal_info">Personal Info</option>
+            <option value="preference">Preference</option>
+            <option value="relationship">Relationship Milestone</option>
+            <option value="events">Events & Dates</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Key / Topic</label>
+          <input id="newMemKey" type="text" placeholder="e.g. favorite_food" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Remembered Value</label>
+          <textarea id="newMemValue" rows="2" placeholder="e.g. Biryani with extra raita" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Importance (1-5)</label>
+          <input id="newMemImportance" type="number" min="1" max="5" value="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        </div>
+      </div>
+      <button onclick="saveNewMemory()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg">Save to Memory</button>
+    </div>
+  </div>
+
+  <script src="/static/js/dashboard.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
