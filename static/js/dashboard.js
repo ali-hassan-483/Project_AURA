@@ -8,6 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCharacterSettings();
   loadProviders();
   loadUserDropdown();
+
+  // Register PWA Service Worker for Mobile installation
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(() => console.log("Aura PWA Service Worker Registered"))
+      .catch((err) => console.log("SW registration error:", err));
+  }
 });
 
 // ---------------- TAB SWITCHING ----------------

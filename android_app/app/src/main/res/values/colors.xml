@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#0A0B10</color>
+    <color name="bg_card">#161928</color>
+    <color name="accent_rose">#F43F5E</color>
+    <color name="accent_pink">#FB7185</color>
+    <color name="bubble_user">#E11D48</color>
+    <color name="bubble_aura">#1E2337</color>
+    <color name="text_white">#F8FAFC</color>
+    <color name="text_muted">#94A3B8</color>
+    <color name="status_green">#22C55E</color>
+</resources>

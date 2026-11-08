@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: project-aura-bot
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: HOST
+        value: 0.0.0.0
+      - key: PRIMARY_AI_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: WHATSAPP_VERIFY_TOKEN
+        value: aura_verify_token_2026

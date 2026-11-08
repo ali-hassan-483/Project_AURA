@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  aura-bot:
+    build: .
+    container_name: project_aura_bot
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./static/images/generated:/app/static/images/generated
+      - ./static/audio:/app/static/audio

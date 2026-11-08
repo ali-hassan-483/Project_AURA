@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: Optional[str] = None
     OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
 
+    # Custom / Dedicated External AI API (Any OpenAI-compatible endpoint)
+    CUSTOM_AI_API_KEY: Optional[str] = None
+    CUSTOM_AI_BASE_URL: str = "https://api.openai.com/v1"
+    CUSTOM_AI_MODEL: str = "gpt-4o-mini"
+
     # Voice (TTS & STT)
     TTS_DEFAULT_VOICE_URDU: str = "ur-PK-UzmaNeural"
     TTS_DEFAULT_VOICE_ENGLISH: str = "en-US-AvaNeural"

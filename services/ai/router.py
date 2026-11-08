@@ -6,6 +6,7 @@ from services.ai.groq_provider import GroqProvider
 from services.ai.gemini_provider import GeminiProvider
 from services.ai.ollama_provider import OllamaProvider
 from services.ai.openrouter_provider import OpenRouterProvider
+from services.ai.custom_provider import CustomOpenAICompatibleProvider
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ class AIRouter:
             "groq": GroqProvider(),
             "gemini": GeminiProvider(),
             "ollama": OllamaProvider(),
-            "openrouter": OpenRouterProvider()
+            "openrouter": OpenRouterProvider(),
+            "custom": CustomOpenAICompatibleProvider()
         }
         self.primary_provider = settings.PRIMARY_AI_PROVIDER
         self.fallback_providers = list(settings.FALLBACK_AI_PROVIDERS)
