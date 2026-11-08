@@ -14,6 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ---------------- MOBILE DRAWER ----------------
+function toggleMobileDrawer() {
+  const drawer = document.getElementById("mobileDrawer");
+  const backdrop = document.getElementById("mobileDrawerBackdrop");
+  if (!drawer || !backdrop) return;
+  
+  if (drawer.classList.contains("-translate-x-full")) {
+    drawer.classList.remove("-translate-x-full");
+    backdrop.classList.remove("hidden");
+  } else {
+    drawer.classList.add("-translate-x-full");
+    backdrop.classList.add("hidden");
+  }
+}
+
+function mobileSwitchTab(tabId) {
+  toggleMobileDrawer();
+  switchTab(tabId);
+}
+
 // ---------------- TAB SWITCHING ----------------
 function switchTab(tabId) {
   activeTab = tabId;
@@ -47,11 +67,13 @@ function switchTab(tabId) {
 async function checkAuth() {
   const statusText = document.getElementById("authStatusText");
   const adminNav = document.getElementById("adminNavGroup");
+  const mobileAdminNav = document.getElementById("mobileAdminNavGroup");
 
   if (!authToken) {
     statusText.innerText = "Admin Login";
     statusText.className = "text-slate-300";
     if (adminNav) adminNav.classList.add("hidden");
+    if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
     return;
   }
 
@@ -62,6 +84,7 @@ async function checkAuth() {
       statusText.innerText = "Admin (Logout)";
       statusText.className = "text-emerald-400 font-semibold";
       if (adminNav) adminNav.classList.remove("hidden");
+      if (mobileAdminNav) mobileAdminNav.classList.remove("hidden");
       refreshMetrics();
       loadCharacterSettings();
       loadProviders();
@@ -72,9 +95,11 @@ async function checkAuth() {
       statusText.innerText = "Admin Login";
       statusText.className = "text-slate-300";
       if (adminNav) adminNav.classList.add("hidden");
+      if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
     }
   } catch (e) {
     if (adminNav) adminNav.classList.add("hidden");
+    if (mobileAdminNav) mobileAdminNav.classList.add("hidden");
   }
 
   if (window.lucide) lucide.createIcons();
