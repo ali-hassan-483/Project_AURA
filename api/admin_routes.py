@@ -141,6 +141,13 @@ async def generate_image(data: Dict[str, Any] = Body(...)):
     }
 
 # ---------------- LIVE SIMULATOR / WEB CHAT ----------------
+@admin_router.get("/simulator/history")
+async def get_simulator_history(phone: str = "+923001234567"):
+    """Fetches chat history for the simulator user so previous messages are never lost"""
+    user = db.get_or_create_user(phone_number=phone)
+    messages = db.get_recent_messages(user_id=user["id"], limit=50)
+    return {"messages": messages, "user": user}
+
 @admin_router.post("/simulator/chat")
 async def simulate_chat(data: Dict[str, Any] = Body(...)):
     """

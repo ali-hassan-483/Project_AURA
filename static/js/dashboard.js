@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCharacterSettings();
   loadProviders();
   loadUserDropdown();
+  loadChatHistory();
 
   // Register PWA Service Worker for Mobile installation
   if ('serviceWorker' in navigator) {
@@ -41,6 +42,7 @@ function switchTab(tabId) {
   if (tabId === "memory") loadUserDropdown();
   if (tabId === "overview") refreshMetrics();
   if (tabId === "providers") loadProviders();
+  if (tabId === "simulator") loadChatHistory();
 
   lucide.createIcons();
 }
@@ -170,6 +172,28 @@ async function refreshMetrics() {
 }
 
 // ---------------- LIVE SIMULATOR ----------------
+async function loadChatHistory() {
+  try {
+    const res = await fetch("/api/admin/simulator/history?phone=%2B923001234567");
+    if (!res.ok) return;
+    const data = await res.json();
+    const container = document.getElementById("chatMessages");
+    
+    if (data.messages && data.messages.length > 0) {
+      container.innerHTML = "";
+      data.messages.forEach(m => {
+        let img = null;
+        let voice = null;
+        if (m.message_type === "image" && m.media_url) img = m.media_url;
+        if (m.message_type === "voice" && m.media_url) voice = m.media_url;
+        appendChatMessage(m.sender, m.raw_content, img, voice);
+      });
+    }
+  } catch (err) {
+    console.error("Failed to load past chat history:", err);
+  }
+}
+
 async function sendSimulatorMessage() {
   const input = document.getElementById("chatInput");
   const msg = input.value.trim();
