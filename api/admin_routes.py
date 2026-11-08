@@ -203,6 +203,39 @@ async def get_simulator_history(phone: str = "+923001234567"):
     messages = db.get_recent_messages(user_id=user["id"], limit=50)
     return {"messages": messages, "user": user}
 
+@admin_router.post("/simulator/sync-history")
+async def sync_simulator_history(data: Dict[str, Any] = Body(...)):
+    """
+    Syncs local browser-cached conversation back to server after container restart/redeploy,
+    restoring both message logs and extracted user memories.
+    """
+    messages = data.get("messages", [])
+    phone = data.get("phone", "+923001234567")
+    user = db.get_or_create_user(phone_number=phone)
+    user_id = user["id"]
+
+    existing = db.get_recent_messages(user_id=user_id, limit=5)
+    if existing:
+        return {"success": True, "restored": 0, "message": "Server already has messages."}
+
+    restored_count = 0
+    for m in messages:
+        sender = m.get("sender", "user")
+        content = m.get("content") or m.get("raw_content") or ""
+        msg_type = m.get("message_type") or ("image" if m.get("image_url") else ("voice" if m.get("voice_url") else "text"))
+        media_url = m.get("media_url") or m.get("image_url") or m.get("voice_url")
+
+        if content or media_url:
+            db.add_message(user_id=user_id, sender=sender, content=content, message_type=msg_type, media_url=media_url)
+            restored_count += 1
+            if sender == "user" and content:
+                try:
+                    await memory_service.process_and_store_message(user_id=user_id, user_message=content)
+                except Exception:
+                    pass
+
+    return {"success": True, "restored": restored_count}
+
 @admin_router.post("/simulator/chat")
 async def simulate_chat(data: Dict[str, Any] = Body(...)):
     """

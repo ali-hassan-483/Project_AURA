@@ -223,26 +223,79 @@ async function refreshMetrics() {
   }
 }
 
-// ---------------- LIVE SIMULATOR ----------------
+// ---------------- LIVE SIMULATOR & PERSISTENCE ----------------
+const LOCAL_CHAT_KEY = "aylin_chat_history_backup";
+
+function getLocalChat() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_CHAT_KEY) || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveLocalMessage(sender, text, imageUrl = null, voiceUrl = null) {
+  try {
+    const list = getLocalChat();
+    list.push({
+      sender,
+      raw_content: text,
+      message_type: imageUrl ? "image" : (voiceUrl ? "voice" : "text"),
+      media_url: imageUrl || voiceUrl,
+      created_at: new Date().toISOString()
+    });
+    // Keep last 100 messages in localStorage
+    if (list.length > 100) list.shift();
+    localStorage.setItem(LOCAL_CHAT_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.warn("Could not save to localStorage:", e);
+  }
+}
+
 async function loadChatHistory() {
+  const container = document.getElementById("chatMessages");
+  let messages = [];
+
   try {
     const res = await fetch("/api/admin/simulator/history?phone=%2B923001234567");
-    if (!res.ok) return;
-    const data = await res.json();
-    const container = document.getElementById("chatMessages");
-    
-    if (data.messages && data.messages.length > 0) {
-      container.innerHTML = "";
-      data.messages.forEach(m => {
-        let img = null;
-        let voice = null;
-        if (m.message_type === "image" && m.media_url) img = m.media_url;
-        if (m.message_type === "voice" && m.media_url) voice = m.media_url;
-        appendChatMessage(m.sender, m.raw_content, img, voice);
-      });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.messages && data.messages.length > 0) {
+        messages = data.messages;
+        localStorage.setItem(LOCAL_CHAT_KEY, JSON.stringify(messages));
+      }
     }
   } catch (err) {
-    console.error("Failed to load past chat history:", err);
+    console.error("Failed to load past chat history from server:", err);
+  }
+
+  // If server has no messages (e.g. Render redeployed or restarted container),
+  // immediately restore from browser localStorage and sync back to server!
+  if (messages.length === 0) {
+    const localBackup = getLocalChat();
+    if (localBackup.length > 0) {
+      console.log(`Restoring ${localBackup.length} messages from local browser storage...`);
+      messages = localBackup;
+
+      // Sync restored messages back to server database in background
+      fetch("/api/admin/simulator/sync-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: "+923001234567", messages: localBackup })
+      }).catch(e => console.warn("Sync failed:", e));
+    }
+  }
+
+  if (messages.length > 0) {
+    container.innerHTML = "";
+    messages.forEach(m => {
+      let img = null;
+      let voice = null;
+      if (m.message_type === "image" && m.media_url) img = m.media_url;
+      if (m.message_type === "voice" && m.media_url) voice = m.media_url;
+      const content = m.raw_content || m.content || "";
+      appendChatMessage(m.sender, content, img, voice, false);
+    });
   }
 }
 
@@ -252,7 +305,7 @@ async function sendSimulatorMessage() {
   if (!msg) return;
 
   input.value = "";
-  appendChatMessage("user", msg);
+  appendChatMessage("user", msg, null, null, true);
 
   // Add typing indicator
   const typingId = appendTypingIndicator();
@@ -267,13 +320,13 @@ async function sendSimulatorMessage() {
 
     if (res.ok) {
       const data = await res.json();
-      appendChatMessage("assistant", data.reply, data.image_url, data.voice_url);
+      appendChatMessage("assistant", data.reply, data.image_url, data.voice_url, true);
     } else {
-      appendChatMessage("assistant", "Sorry jaan, there was a temporary connection hiccup!");
+      appendChatMessage("assistant", "Sorry jaan, there was a temporary connection hiccup!", null, null, true);
     }
   } catch (e) {
     removeTypingIndicator(typingId);
-    appendChatMessage("assistant", "Error communicating with Aura engine.");
+    appendChatMessage("assistant", "Error communicating with Aylin engine.", null, null, true);
   }
 }
 
@@ -282,7 +335,11 @@ function sendQuickPrompt(promptText) {
   sendSimulatorMessage();
 }
 
-function appendChatMessage(sender, text, imageUrl = null, voiceUrl = null) {
+function appendChatMessage(sender, text, imageUrl = null, voiceUrl = null, saveToStorage = false) {
+  if (saveToStorage) {
+    saveLocalMessage(sender, text, imageUrl, voiceUrl);
+  }
+
   const container = document.getElementById("chatMessages");
   const row = document.createElement("div");
 
@@ -300,7 +357,7 @@ function appendChatMessage(sender, text, imageUrl = null, voiceUrl = null) {
     if (imageUrl) {
       mediaHtml += `
         <div class="mt-2 rounded-xl overflow-hidden border border-slate-700 max-w-xs shadow-md">
-          <img src="${imageUrl}" alt="Aura" class="w-full h-auto object-cover" />
+          <img src="${imageUrl}" alt="Aylin" class="w-full h-auto object-cover" />
         </div>
       `;
     }
@@ -351,7 +408,8 @@ function removeTypingIndicator(id) {
 function clearChatSimulator() {
   const container = document.getElementById("chatMessages");
   container.innerHTML = "";
-  appendChatMessage("assistant", "Chat history cleared. Main tayyar hoon jaan, kya kehna chahte ho?");
+  localStorage.removeItem(LOCAL_CHAT_KEY);
+  appendChatMessage("assistant", "Chat history cleared. I'm ready, what's on your mind?", null, null, false);
 }
 
 // ---------------- PERSONA STUDIO ----------------
