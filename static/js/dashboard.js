@@ -575,7 +575,8 @@ async function generateCustomImage() {
       imgTag.src = data.image_url + "?t=" + Date.now();
       status.innerText = `Rendered: ${prompt}`;
     } else {
-      status.innerText = "Generation error";
+      const errData = await res.json().catch(() => ({}));
+      status.innerText = "Error: " + (errData.detail || "Generation failed, please try again in a few seconds.");
     }
   } catch (e) {
     status.innerText = "Error: " + e.message;

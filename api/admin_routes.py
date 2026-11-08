@@ -170,6 +170,15 @@ async def upload_reference_photo(file: UploadFile = File(...)):
         with open(ref_path, "wb") as f:
             f.write(image_bytes)
 
+    # Save to database as Base64 to survive Render redeployments / container restarts
+    try:
+        import base64
+        b64_str = base64.b64encode(image_bytes).decode("utf-8")
+        db.save_reference_photo_b64(b64_str)
+        logger.info("Reference photo persisted to database as base64.")
+    except Exception as e:
+        logger.warning("Could not persist reference photo to database: %s", e)
+
     # Update face anchor
     face_description = (
         "RAW photo, (photorealistic:1.4), beautiful 21-year-old South Asian woman, "

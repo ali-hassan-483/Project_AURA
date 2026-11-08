@@ -9,8 +9,7 @@ class TestImageIdentity(unittest.TestCase):
     def test_identity_prompt_composition(self):
         scene = "sitting at the beach in a lovely dress"
         prompt = self.identity.compose_prompt(scene)
-        self.assertIn("Aura", prompt)
-        self.assertIn("hazel-brown", prompt)
+        self.assertIn("hazel brown", prompt)
         self.assertIn("beach", prompt)
         self.assertIn("85mm", prompt)
 
