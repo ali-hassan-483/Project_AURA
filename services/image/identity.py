@@ -15,18 +15,14 @@ class IdentityManager:
     and photographic rendering parameters across all image generations.
     """
     def __init__(self):
-        self.name = "Aura"
+        self.name = "Aylin"
         self.age = 21
         self.seed_anchor = settings.IMAGE_SEED
         self.reference_image_path = REFERENCE_DIR / "aura_canonical_reference.jpg"
 
-        # --- Core Identity (concise = better Pollinations results) ---
-        self.face_anchor = (
-            "RAW photo, (photorealistic:1.4), beautiful 21-year-old South Asian woman, "
-            "warm hazel brown almond eyes, long natural wavy dark brown hair, "
-            "subtle beauty mark left cheek, soft natural lips, "
-            "flawless warm golden skin, real skin texture and pores"
-        )
+        # --- Reference photo path (set by admin upload) ---
+        self.reference_image_path = REFERENCE_DIR / "aylin_reference.jpg"
+        self._load_face_anchor()
 
         # --- Photography Style ---
         self.photography_style = (
@@ -67,6 +63,32 @@ class IdentityManager:
         while providing scene naturalness variation (offset max ±50).
         """
         return self.seed_anchor + (seed_offset % 50)
+
+    def _load_face_anchor(self):
+        """Use admin-uploaded reference photo description if available, else default."""
+        ref_desc_path = REFERENCE_DIR / "aylin_reference_desc.txt"
+        if ref_desc_path.exists():
+            with open(ref_desc_path, "r", encoding="utf-8") as f:
+                custom_desc = f.read().strip()
+            if custom_desc:
+                self.face_anchor = custom_desc
+                logger.info("Loaded custom face anchor from admin reference photo description.")
+                return
+        # Default face anchor
+        self.face_anchor = (
+            "RAW photo, (photorealistic:1.4), beautiful 21-year-old South Asian woman, "
+            "warm hazel brown almond eyes, long natural wavy dark brown hair, "
+            "subtle beauty mark left cheek, soft natural lips, "
+            "flawless warm golden skin, real skin texture and pores"
+        )
+
+    def set_reference_description(self, description: str):
+        """Called when admin uploads a reference photo — saves the face description for consistent generation."""
+        ref_desc_path = REFERENCE_DIR / "aylin_reference_desc.txt"
+        with open(ref_desc_path, "w", encoding="utf-8") as f:
+            f.write(description)
+        self.face_anchor = description
+        logger.info("Reference face description updated by admin.")
 
     def save_canonical_reference(self, image_bytes: bytes) -> str:
         with open(self.reference_image_path, "wb") as f:

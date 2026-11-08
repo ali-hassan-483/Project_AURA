@@ -574,6 +574,42 @@ async function generateCustomImage() {
   }
 }
 
+// ---------------- REFERENCE PHOTO UPLOAD ----------------
+async function uploadReferencePhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById("refUploadStatus");
+  const previewDiv = document.getElementById("refPhotoPreview");
+  const previewImg = document.getElementById("refPhotoImg");
+
+  // Show local preview immediately
+  previewImg.src = URL.createObjectURL(file);
+  previewDiv.classList.remove("hidden");
+  statusEl.innerText = "Uploading...";
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("/api/admin/character/upload-reference", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${localStorage.getItem("adminToken")}` },
+      body: formData
+    });
+    if (res.ok) {
+      const data = await res.json();
+      statusEl.innerText = "✅ Reference photo saved!";
+      statusEl.className = "text-xs text-emerald-400";
+    } else {
+      statusEl.innerText = "❌ Upload failed";
+      statusEl.className = "text-xs text-red-400";
+    }
+  } catch (e) {
+    statusEl.innerText = "❌ Error: " + e.message;
+    statusEl.className = "text-xs text-red-400";
+  }
+}
+
 // ---------------- AI PROVIDERS ----------------
 async function loadProviders() {
   try {

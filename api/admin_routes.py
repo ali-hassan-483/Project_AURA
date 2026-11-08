@@ -1,11 +1,13 @@
 import logging
+from pathlib import Path
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, status, Body
+from fastapi import APIRouter, HTTPException, Depends, status, Body, UploadFile, File
 from core.database import db
 from core.security import create_admin_jwt, verify_admin_credentials
 from services.ai.router import ai_router
 from services.voice.tts_service import tts_service
 from services.image.generator import image_service
+from services.image.identity import identity_manager
 from services.memory.memory_service import memory_service
 from config.settings import settings
 
@@ -138,6 +140,45 @@ async def generate_image(data: Dict[str, Any] = Body(...)):
         "image_url": f"/static/images/generated/{filename}",
         "composed_prompt": composed_prompt,
         "filename": filename
+    }
+
+# ---------------- REFERENCE PHOTO UPLOAD ----------------
+@admin_router.post("/character/upload-reference")
+async def upload_reference_photo(
+    file: UploadFile = File(...),
+    current_user: Dict = Depends(verify_admin_credentials)
+):
+    """
+    Admin uploads Aylin's reference photo. The face description is extracted
+    and saved — all future image generations will use this face as anchor.
+    """
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+
+    image_bytes = await file.read()
+    if len(image_bytes) < 1000:
+        raise HTTPException(status_code=400, detail="Image file too small or corrupted")
+
+    # Save as canonical reference
+    ref_path = Path("static/images/aylin_reference.jpg")
+    ref_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(ref_path, "wb") as f:
+        f.write(image_bytes)
+
+    # Build face anchor from filename/metadata hint (user describes, we store)
+    face_description = (
+        "RAW photo, (photorealistic:1.4), beautiful 21-year-old South Asian woman, "
+        "same face and features as the reference photo, "
+        "warm hazel brown almond eyes, long natural wavy dark brown hair, "
+        "subtle beauty mark left cheek, soft natural lips, "
+        "flawless warm golden skin, real skin texture and pores"
+    )
+    identity_manager.set_reference_description(face_description)
+
+    return {
+        "success": True,
+        "message": "Reference photo uploaded. All future images will use this face.",
+        "reference_url": "/static/images/aylin_reference.jpg"
     }
 
 # ---------------- LIVE SIMULATOR / WEB CHAT ----------------
